@@ -1,6 +1,6 @@
 // https://github.com/lemire/fastbase64/blob/master/src/chromiumbase64.c
 enum Base64 {
-    @inlinable static func encode(_ string: [UInt8]) -> String {
+    @usableFromInline static func encode(_ string: [UInt8]) -> String {
         let inputLength = string.count
         // Every 3 bytes of input is encoded into 4 bytes of output
         let outputLength = (inputLength + 2) / 3 * 4
