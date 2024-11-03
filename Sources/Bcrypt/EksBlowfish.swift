@@ -5,7 +5,8 @@
 /// 2. The  OpenBSD implementation of bcrypt at https://github.com/openbsd/src/blob/master/lib/libc/crypt/bcrypt.c.
 ///   The function names and variable names are kept the same as in the OpenBSD implementation.
 enum EksBlowfish {
-    func setup(password: [UInt8], salt: [UInt8], cost: Int) -> (p: [UInt32], s: [[UInt32]]) {
+    @usableFromInline
+    static func setup(password: [UInt8], salt: [UInt8], cost: Int) -> (p: [UInt32], s: [[UInt32]]) {
         assert(cost >= 4 && cost <= 31, "Cost must be between 4 and 31")
         assert(salt.count == 16, "Salt must be 16 bytes long")
         assert(password.count > 0 && password.count <= 72, "Password must be between 1 and 72 bytes long")
@@ -22,7 +23,8 @@ enum EksBlowfish {
         return (lastP, lastS)
     }
 
-    private func expand0State(key: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
+    @usableFromInline
+    static func expand0State(key: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
         var p = p
 
         var j = 0
@@ -54,7 +56,8 @@ enum EksBlowfish {
         return (p, s)
     }
 
-    private func expandState(password: [UInt8], salt: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
+    @usableFromInline
+    static func expandState(password: [UInt8], salt: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
         var p = p
 
         var j = 0
@@ -90,7 +93,8 @@ enum EksBlowfish {
         return (p, s)
     }
 
-    private func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
+    @usableFromInline
+    static func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
         var word: UInt32 = 0
 
         for _ in 0..<4 {
@@ -103,7 +107,8 @@ enum EksBlowfish {
         return word
     }
 
-    private func encipher(xl: inout UInt32, xr: inout UInt32, p: [UInt32], s: [[UInt32]]) {
+    @usableFromInline
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: [UInt32], s: [[UInt32]]) {
         var Xl = xl
         var Xr = xr
 
@@ -119,7 +124,8 @@ enum EksBlowfish {
         Xl ^= p[EksBlowfish.N + 1]
     }
 
-    private func F(s: [[UInt32]], x: UInt32) -> UInt32 {
+    @usableFromInline
+    static func F(s: [[UInt32]], x: UInt32) -> UInt32 {
         s[0][Int((x >> 24) & 0x0ff)]
             &+ s[1][Int((x >> 16) & 0x0ff)]
             ^ s[2][Int((x >> 8) & 0x0ff)]
