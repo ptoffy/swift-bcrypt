@@ -20,7 +20,7 @@ enum BcryptVersion {
     }
 
     var identifier: [UInt8] {
-        [.separator, majorVersion, minorVersion, .separator]
+        [.separator, majorVersion, minorVersion, .separator]  // $2x$
     }
 }
 
