@@ -13,9 +13,12 @@ enum EksBlowfish {
 
         var (p, s) = expandState(password: password, salt: salt, p: Self.initialP, s: Self.initialS)
 
-        for _ in 0..<(1 << cost) {
+        var i = 1 &<< cost
+
+        while i > 0 {
             (p, s) = expand0State(key: password, p: p, s: s)
             (p, s) = expand0State(key: salt, p: p, s: s)
+            i &-= 1
         }
 
         return (p, s)
@@ -26,29 +29,36 @@ enum EksBlowfish {
         var p = p
 
         var j = 0
-        for i in 0..<Self.N + 2 {
+        var i = 0
+        while i < Self.N &+ 2 {
             p[i] ^= stream2word(data: key, j: &j)
+            i &+= 1
         }
 
         let dataL: UInt32 = 0
         let dataR: UInt32 = 0
 
-        for i in stride(from: 0, to: Self.N + 2, by: 2) {
+        i = 0
+        while i < Self.N &+ 2 {
             let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
+            i &+= 2
         }
 
         var s = s
-
-        for i in 0..<4 {
-            for k in stride(from: 0, to: 256, by: 2) {
+        i = 0
+        while i < 4 {
+            var k = 0
+            while k < 256 {
                 let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
 
                 s[i][k] = dataL
                 s[i][k &+ 1] = dataR
+                k &+= 2
             }
+            i &+= 1
         }
 
         return (p, s)
@@ -59,33 +69,41 @@ enum EksBlowfish {
         var p = p
 
         var j = 0
-        for i in 0..<Self.N + 2 {
+        var i = 0
+        while i < Self.N &+ 2 {
             p[i] ^= stream2word(data: salt, j: &j)
+            i &+= 1
         }
 
         j = 0
+        i = 0
         var dataL: UInt32 = 0
         var dataR: UInt32 = 0
 
-        for i in stride(from: 0, to: Self.N + 2, by: 2) {
+        while i < Self.N &+ 2 {
             dataL ^= stream2word(data: salt, j: &j)
             dataR ^= stream2word(data: salt, j: &j)
             let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
+            i &+= 2
         }
 
         var s = s
-        for i in 0..<4 {
-            for k in stride(from: 0, to: 256, by: 2) {
+        i = 0
+        while i < 4 {
+            var k = 0
+            while k < 256 {
                 dataL ^= stream2word(data: salt, j: &j)
                 dataR ^= stream2word(data: salt, j: &j)
                 let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
 
                 s[i][k] = dataL
                 s[i][k &+ 1] = dataR
+                k &+= 2
             }
+            i &+= 1
         }
 
         return (p, s)
@@ -95,11 +113,13 @@ enum EksBlowfish {
     static func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
         var word: UInt32 = 0
 
-        for _ in 0..<4 {
+        var i = 0
+        while i < 4 {
             if j >= data.count {
                 j = 0
             }
-            word = (word &<< 8) | UInt32(data[j])
+            word = (word &<< 8) | UInt32(truncatingIfNeeded: data[j])
+            i &+= 1
         }
 
         return word
@@ -110,10 +130,12 @@ enum EksBlowfish {
         var Xl = xl
         var Xr = xr
 
-        for i in 0..<EksBlowfish.N {
+        var i = 0
+        while i < Self.N {
             Xl ^= p[i]
-            Xr = F(s: s, x: Xl) ^ Xr
+            Xr ^= F(s: s, x: Xl)
             (Xl, Xr) = (Xr, Xl)
+            i &+= 1
         }
 
         (Xl, Xr) = (Xr, Xl)
@@ -126,10 +148,12 @@ enum EksBlowfish {
 
     @usableFromInline
     static func F(s: [[UInt32]], x: UInt32) -> UInt32 {
-        s[0][Int((x >> 24) & 0x0ff)]
-            &+ s[1][Int((x >> 16) & 0x0ff)]
-            ^ s[2][Int((x >> 8) & 0x0ff)]
-            &+ s[3][Int(x & 0x0ff)]
+        let a = s[0][Int(truncatingIfNeeded: (x &>> 24) & 0x0ff)]
+        let b = s[1][Int(truncatingIfNeeded: (x &>> 16) & 0x0ff)]
+        let c = s[2][Int(truncatingIfNeeded: (x &>> 8) & 0x0ff)]
+        let d = s[3][Int(truncatingIfNeeded: x & 0x0ff)]
+        
+        return (a &+ b) ^ c &+ d
     }
 
 }

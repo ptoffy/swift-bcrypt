@@ -23,10 +23,12 @@ struct Hasher {
     ///   - password: the password to hash
     /// - Throws:
     /// - Returns:
+    @inlinable
     public func hash(password: [UInt8], cost: Int) throws -> [UInt8] {
         try hash(password: password, cost: cost, salt: Hasher.randomSalt(logRounds: cost))
     }
 
+    @inlinable
     public func hash(password: [UInt8], cost: Int, salt: [UInt8]) throws -> [UInt8] {
         let cSalt = [UInt8](bcryptBase64EncodedArray: Array(salt[7...]))!
 
