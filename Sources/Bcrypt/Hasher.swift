@@ -1,8 +1,4 @@
-#if canImport(FoundationEssentials)
-    import FoundationEssentials
-#else
-    import Foundation
-#endif
+import Foundation
 
 public struct Hasher {
     @usableFromInline static let cipherText = Array("OrpheanBeholderScryDoubt".utf8)
