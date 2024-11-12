@@ -18,6 +18,7 @@ A native, dependency and Foundation free Swift implementation of the bcrypt pass
 import Bcrypt
 
 let password = "password"
-let hash = try Hasher(version: .v2a).hash(password: password)
+let hash = try Bcrypt.hash(password: password)
+let isValid = try Bcrypt.verify(password: password, hash: hash)
 ```
 

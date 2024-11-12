@@ -1,30 +1,48 @@
-public struct Hasher {
+extension Bcrypt {
     @usableFromInline static let cipherText = Array("OrpheanBeholderScryDoubt".utf8)
     @usableFromInline static let maxSalt = 16
     @usableFromInline static let saltSpace = 22
     @usableFromInline static let words = 6
     @usableFromInline static let hashSpace = 60
 
-    @usableFromInline let version: BcryptVersion
-
-    public init(version: BcryptVersion = .v2a) {
-        self.version = version
-    }
-
-    /// Encrypts a password using the bcrypt algorithm.
+    /// Hashes a password using the bcrypt algorithm.
     /// - Parameters:
-    ///   - cost: number of rounds to apply the key derivation function, used as log2(cost)
-    ///   - password: the password to hash
-    /// - Throws:
-    /// - Returns:
+    ///   - password: the password to hash.
+    ///   - cost: number of rounds to apply the key derivation function, used as log2(cost). Must be between 4 and 31.
+    ///   - version: the version of the bcrypt algorithm to use. Defaults to `v2b`.
+    /// - Throws: ``BcryptError``
+    /// - Returns: the hashed password.
     @inlinable
-    public func hash(password: [UInt8], cost: Int) throws -> [UInt8] {
-        try hash(password: password, cost: cost, salt: Hasher.generateRandomSalt())
+    public static func hash(password: String, cost: Int = 10, version: BcryptVersion = .v2b) throws -> String {
+        String(
+            decoding: try hash(password: Array(password.utf8), cost: cost, salt: Self.generateRandomSalt(), version: version),
+            as: UTF8.self
+        )
     }
 
+    /// Hashes a password using the bcrypt algorithm.
+    /// - Parameters:
+    ///   - password: the password to hash.
+    ///   - cost: number of rounds to apply the key derivation function, used as log2(cost). Must be between 4 and 31.
+    ///   - version: the version of the bcrypt algorithm to use. Defaults to `v2b`.
+    /// - Throws: ``BcryptError``
+    /// - Returns: the hashed password.
     @inlinable
-    public func hash(password: [UInt8], cost: Int, salt: [UInt8]) throws -> [UInt8] {
-        guard (salt.count * 3 / 4) - 1 < Hasher.maxSalt else {
+    public static func hash(password: [UInt8], cost: Int = 10, version: BcryptVersion = .v2b) throws -> [UInt8] {
+        try hash(password: password, cost: cost, salt: Self.generateRandomSalt(), version: version)
+    }
+
+    /// Hashes a password using the bcrypt algorithm.
+    /// - Parameters:
+    ///   - password: the password to hash.
+    ///   - cost: number of rounds to apply the key derivation function, used as log2(cost). Must be between 4 and 31.
+    ///   - salt: the salt to use for the hash.
+    ///   - version: the version of the bcrypt algorithm to use. Defaults to `v2b`.
+    /// - Throws: ``BcryptError``
+    /// - Returns: the hashed password.
+    @inlinable
+    public static func hash(password: [UInt8], cost: Int = 10, salt: [UInt8], version: BcryptVersion = .v2b) throws -> [UInt8] {
+        guard (salt.count * 3 / 4) - 1 < Self.maxSalt else {
             throw BcryptError.invalidSaltLength
         }
 
@@ -47,12 +65,12 @@ public struct Hasher {
 
         let (p, s) = EksBlowfish.setup(password: password, salt: cSalt, cost: cost)
 
-        var cData = [UInt32](repeating: 0, count: Hasher.words)
+        var cData = [UInt32](repeating: 0, count: Self.words)
 
         var i = 0
         var j = 0
-        while i < Hasher.words {
-            cData[i] = EksBlowfish.stream2word(data: Hasher.cipherText, j: &j)
+        while i < Self.words {
+            cData[i] = EksBlowfish.stream2word(data: Self.cipherText, j: &j)
             i &+= 1
         }
 
@@ -61,7 +79,7 @@ public struct Hasher {
             var j = 0
             var xl: UInt32 = 0
             var xr: UInt32 = 0
-            while j < Hasher.words / 2 {
+            while j < Self.words / 2 {
                 xl = cData[j * 2]
                 xr = cData[j * 2 + 1]
                 EksBlowfish.encipher(xl: &xl, xr: &xr, p: p, s: s)
@@ -72,9 +90,9 @@ public struct Hasher {
             i &+= 1
         }
 
-        var cipherText = Hasher.cipherText
+        var cipherText = Self.cipherText
         i = 0
-        while i < Hasher.words {
+        while i < Self.words {
             cipherText[4 * i + 3] = UInt8(cData[i] & 0xff)
             cipherText[4 * i + 2] = UInt8((cData[i] &>> 8) & 0xff)
             cipherText[4 * i + 1] = UInt8((cData[i] &>> 16) & 0xff)
@@ -109,15 +127,19 @@ public struct Hasher {
         var salt = [UInt8](repeating: 0, count: saltSpace)
 
         var cSalt = [UInt8](repeating: 0, count: maxSalt)
-        for i in 0..<maxSalt {
+        var i = 0
+        while i < maxSalt {
             cSalt[i] = UInt8.random(in: .min ... .max)
+            i &+= 1
         }
 
         let encodedSalt = Base64.encode(cSalt, count: Self.hashSpace)
-        for (i, byte) in encodedSalt.enumerated() {
+        i = 0
+        while i < encodedSalt.count {
             if i < saltSpace {
-                salt[i] = byte
+                salt[i] = encodedSalt[i]
             }
+            i &+= 1
         }
 
         return salt

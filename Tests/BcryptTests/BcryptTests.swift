@@ -56,12 +56,14 @@ struct BcryptTests {
             ]
 
         for testVector in testVectors {
-            let hash = try Hasher(version: .v2a)
-                .hash(password: Array(testVector.password.utf8), cost: testVector.cost, salt: Array(testVector.salt.utf8))
+            let hash = try Bcrypt.hash(
+                password: Array(testVector.password.utf8), cost: testVector.cost, salt: Array(testVector.salt.utf8), version: .v2a
+            )
 
             #expect(
                 hash == Array(testVector.expectedHash.utf8),
-                "Expected: \(testVector.expectedHash), got: \(String(decoding: hash, as: UTF8.self))")
+                "Expected: \(testVector.expectedHash), got: \(String(decoding: hash, as: UTF8.self))"
+            )
         }
     }
 
@@ -70,15 +72,14 @@ struct BcryptTests {
         let password = "password"
         let cost = 12
 
-        let hash = try Hasher().hash(password: Array(password.utf8), cost: cost)
-        let verifier = Verifier()
-        #expect(try verifier.verify(password: Array(password.utf8), hash: hash))
+        let hash = try Bcrypt.hash(password: password, cost: cost)
+
+        #expect(try Bcrypt.verify(password: password, hash: hash))
     }
 
     @Test("Correct Version")
     func correctVersion() throws {
-        let hash = try Hasher(version: .v2b)
-            .hash(password: "password", cost: 6)
+        let hash = try Bcrypt.hash(password: "password", cost: 6)
 
         #expect(hash.hasPrefix("$2b$06$"))
     }
