@@ -27,7 +27,7 @@ public enum BcryptVersion {
     var identifier: [UInt8] {
         [.separator, majorVersion, minorVersion, .separator]  // $2x$
     }
-    
+
     init(identifier: [UInt8]) {
         switch identifier {
         case [0x32, 0x61]: self = .v2a
