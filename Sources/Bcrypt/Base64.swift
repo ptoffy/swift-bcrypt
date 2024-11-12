@@ -38,10 +38,7 @@ struct Base64 {
             return []
         }
 
-        var len = count
-        if len > bytes.count {
-            len = bytes.count
-        }
+        let len = min(bytes.count, count)
 
         var offset: Int = 0
         var c1: UInt8
@@ -51,7 +48,7 @@ struct Base64 {
         while offset < len {
             c1 = bytes[offset] & 0xff
             offset &+= 1
-            result.append(encodingTable[Int(truncatingIfNeeded: (c1 >> 2) & 0x3f)])
+            result.append(encodingTable[Int(truncatingIfNeeded: (c1 &>> 2) & 0x3f)])
             c1 = (c1 & 0x03) &<< 4
             if offset >= len {
                 result.append(encodingTable[Int(truncatingIfNeeded: c1 & 0x3f)])
@@ -79,7 +76,7 @@ struct Base64 {
     }
 
     private static func char64(of x: UInt8) -> UInt8 {
-        x > 127 ? 255 : decodingTable[Int(x)]
+        x > 127 ? 255 : decodingTable[Int(truncatingIfNeeded: x)]
     }
 
     @usableFromInline
