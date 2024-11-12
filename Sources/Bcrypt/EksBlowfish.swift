@@ -25,6 +25,23 @@
 
         return (p, s)
     }
+    
+    @usableFromInline
+    static func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
+        var word: UInt32 = 0
+
+        var i = 0
+        while i < 4 {
+            if j >= data.count {
+                j = 0
+            }
+            word = (word &<< 8) | UInt32(truncatingIfNeeded: data[j])
+            i &+= 1
+            j &+= 1
+        }
+
+        return word
+    }
 
     @usableFromInline
     static func expand0State(key: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
@@ -37,12 +54,13 @@
             i &+= 1
         }
 
-        let dataL: UInt32 = 0
-        let dataR: UInt32 = 0
+        var dataL: UInt32 = 0
+        var dataR: UInt32 = 0
 
         i = 0
+        j = 0
         while i < Self.N &+ 2 {
-            let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
+            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -54,7 +72,7 @@
         while i < 4 {
             var k = 0
             while k < 256 {
-                let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
+                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
                 s[i][k] = dataL
                 s[i][k &+ 1] = dataR
@@ -73,7 +91,7 @@
         var j = 0
         var i = 0
         while i < Self.N &+ 2 {
-            p[i] ^= stream2word(data: salt, j: &j)
+            p[i] ^= stream2word(data: password, j: &j)
             i &+= 1
         }
 
@@ -85,7 +103,7 @@
         while i < Self.N &+ 2 {
             dataL ^= stream2word(data: salt, j: &j)
             dataR ^= stream2word(data: salt, j: &j)
-            let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
+            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -99,7 +117,7 @@
             while k < 256 {
                 dataL ^= stream2word(data: salt, j: &j)
                 dataR ^= stream2word(data: salt, j: &j)
-                let (dataL, dataR) = encipher(xl: dataL, xr: dataR, p: p, s: s)
+                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
                 s[i][k] = dataL
                 s[i][k &+ 1] = dataR
@@ -112,23 +130,7 @@
     }
 
     @usableFromInline
-    static func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
-        var word: UInt32 = 0
-
-        var i = 0
-        while i < 4 {
-            if j >= data.count {
-                j = 0
-            }
-            word = (word &<< 8) | UInt32(truncatingIfNeeded: data[j] & 0xff)
-            i &+= 1
-        }
-
-        return word
-    }
-
-    @usableFromInline
-    static func encipher(xl: UInt32, xr: UInt32, p: [UInt32], s: [[UInt32]]) -> (UInt32, UInt32) {
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: [UInt32], s: [[UInt32]]) {
         var Xl = xl
         var Xr = xr
 
@@ -164,10 +166,8 @@
         BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 15)
         BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 16)
 
-        Xl = Xr ^ p[17]
-        Xr = Xl
-
-        return (Xl, Xr)
+        xl = Xr ^ p[17]
+        xr = Xl
     }
 
 }

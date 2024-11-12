@@ -30,44 +30,61 @@ public struct Hasher {
 
     @inlinable
     public func hash(password: [UInt8], cost: Int, salt: [UInt8]) throws -> [UInt8] {
-        guard let cSalt = [UInt8](bcryptBase64EncodedArray: salt) else {
-            throw BcryptError.invalidSalt
-        }
-
-        guard (cSalt.count * 3 / 4) <= Hasher.maxSalt else {
+        guard (salt.count * 3 / 4) - 1 < Hasher.maxSalt else {
             throw BcryptError.invalidSaltLength
         }
         
-        let password = switch version {
-        case .v2a:
-            password + [0]
-        case .v2b:
-            password
+        let cSalt = Base64.decode(salt, count: UInt(Hasher.maxSalt))
+        
+        guard password.count > 0 else {
+            throw BcryptError.emptyPassword
         }
         
-        let cost = max(4, min(31, cost))
+        let password = if password[password.endIndex - 1] == 0 {
+            Array(password[password.startIndex..<password.endIndex - 1]) + [0]
+        } else {
+            password + [0]
+        }
+        
+        if cost < 4 || cost > 31 {
+            throw BcryptError.invalidCost
+        }
+        
         let (p, s) = EksBlowfish.setup(password: password, salt: cSalt, cost: cost)
 
-        var cData = [UInt32](repeating: 0, count: 64)
+        var cData = [UInt32](repeating: 0, count: Hasher.words)
 
-        for var i in 0..<Hasher.words {
-            cData[i] = EksBlowfish.stream2word(data: Hasher.cipherText, j: &i)
+        var i = 0
+        var j = 0
+        while i < Hasher.words {
+            cData[i] = EksBlowfish.stream2word(data: Hasher.cipherText, j: &j)
+            i &+= 1
         }
 
-        for _ in 0..<64 {
-            for j in 0..<Hasher.words / 2 {
-                let (resultL, resultR) = EksBlowfish.encipher(xl: cData[j * 2], xr: cData[j * 2 + 1], p: p, s: s)
-                cData[j * 2] = resultL
-                cData[j * 2 + 1] = resultR
+        i = 0
+        while i < 64 {
+            var j = 0
+            var xl: UInt32 = 0
+            var xr: UInt32 = 0
+            while j < Hasher.words / 2 {
+                xl = cData[j * 2]
+                xr = cData[j * 2 + 1]
+                EksBlowfish.encipher(xl: &xl, xr: &xr, p: p, s: s)
+                cData[j * 2] = xl
+                cData[j * 2 + 1] = xr
+                j &+= 1
             }
+            i &+= 1
         }
 
         var cipherText = Hasher.cipherText
-        for i in 0..<Hasher.words {
-            cipherText[4 * i + 0] = UInt8((cData[i] &>> 24) & 0xff)
-            cipherText[4 * i + 1] = UInt8((cData[i] &>> 16) & 0xff)
-            cipherText[4 * i + 2] = UInt8((cData[i] &>> 8) & 0xff)
+        i = 0
+        while i < Hasher.words {
             cipherText[4 * i + 3] = UInt8(cData[i] & 0xff)
+            cipherText[4 * i + 2] = UInt8((cData[i] &>> 8) & 0xff)
+            cipherText[4 * i + 1] = UInt8((cData[i] &>> 16) & 0xff)
+            cipherText[4 * i + 0] = UInt8((cData[i] &>> 24) & 0xff)
+            i &+= 1
         }
 
         var output = [UInt8]()
@@ -76,9 +93,7 @@ public struct Hasher {
 
         output += prefix
         output += salt
-        
-        let encodedCipherText = cipherText.bcryptBase64EncodedArray()
-        output += encodedCipherText
+        output += Base64.encode(cipherText, count: UInt(Hasher.hashSpace))
 
         return output
     }
@@ -95,7 +110,7 @@ public struct Hasher {
             cSalt[i] = UInt8.random(in: .min ... .max)
         }
 
-        let encodedSalt = cSalt.bcryptBase64EncodedArray()
+        let encodedSalt = Base64.encode(cSalt, count: UInt(maxSalt))
         for (i, byte) in encodedSalt.enumerated() {
             if i < saltSpace {
                 salt[i] = byte
