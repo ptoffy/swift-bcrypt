@@ -34,7 +34,7 @@ public struct Hasher {
             throw BcryptError.invalidSaltLength
         }
 
-        let cSalt = Base64.decode(salt, count: UInt(Self.maxSalt))
+        let cSalt = Base64.decode(salt, count: Self.maxSalt)
 
         guard password.count > 0 else {
             throw BcryptError.emptyPassword

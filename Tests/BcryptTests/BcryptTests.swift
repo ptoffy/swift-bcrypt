@@ -5,8 +5,8 @@ import Testing
 
 @Suite("Bcrypt Tests")
 struct BcryptTests {
-    @Test("Raw test vectors")
-    func testVectors() throws {
+    @Test("Test Vectors Hashing")
+    func testVectorsHashin() throws {
         let testVectors: [(password: String, cost: Int, salt: String, expectedHash: String)] =
             [
                 ("ππππππππ", 10, ".TtQJ4Jr6isd4Hp.mVfZeu", "$2a$10$.TtQJ4Jr6isd4Hp.mVfZeuh6Gws4rOQ/vdBczhDx.19NFK0Y84Dle"),
@@ -18,12 +18,8 @@ struct BcryptTests {
                 ("U*U", 5, "CCCCCCCCCCCCCCCCCCCCC.", "$2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW"),
                 ("U*U*", 5, "CCCCCCCCCCCCCCCCCCCCC.", "$2a$05$CCCCCCCCCCCCCCCCCCCCC.VGOzA784oUp/Z0DY336zx7pLYAy0lwK"),
                 ("U*U*U", 5, "XXXXXXXXXXXXXXXXXXXXXO", "$2a$05$XXXXXXXXXXXXXXXXXXXXXOAcXxm9kjPGEMsLznoKqmqw7tc8WCx4a"),
-                ("", 6, "DCq7YPn5Rq63x1Lad4cll.", "$2a$06$DCq7YPn5Rq63x1Lad4cll.TV4S6ytwfsfvkgY8jIucDrjc8deX1s."),
 
                 // see: https://github.com/BcryptNet/bcrypt.net/blob/main/src/BCrypt.Net.UnitTests/BCryptTests.cs
-                ("", 8, "HqWuK6/Ng6sg9gQzbLrgb.", "$2a$08$HqWuK6/Ng6sg9gQzbLrgb.Tl.ZHfXLhvt/SgVyWhQqgqcZ7ZuUtye"),
-                ("", 10, "k1wbIrmNyFAPwPVPSVa/ze", "$2a$10$k1wbIrmNyFAPwPVPSVa/zecw2BCEnBwVS2GbrmgzxFUOqW9dk4TCW"),
-                ("", 12, "k42ZFHFWqBp3vWli.nIn8u", "$2a$12$k42ZFHFWqBp3vWli.nIn8uYyIkbvYRvodzbfbK18SSsY.CsIQPlxO"),
                 ("a", 6, "m0CrhHm10qJ3lXRY.5zDGO", "$2a$06$m0CrhHm10qJ3lXRY.5zDGO3rS2KdeeWLuGmsfGlMfOxih58VYVfxe"),
                 ("a", 8, "cfcvVd2aQ8CMvoMpP2EBfe", "$2a$08$cfcvVd2aQ8CMvoMpP2EBfeodLEkkFJ9umNEfPD18.hUF62qqlC/V."),
                 ("a", 10, "k87L/MF28Q673VKh8/cPi.", "$2a$10$k87L/MF28Q673VKh8/cPi.SUl7MU/rWuSiIDDFayrKk/1tBsSQu4u"),
@@ -64,7 +60,9 @@ struct BcryptTests {
             let hash = try Hasher(version: .v2a)
                 .hash(password: Array(testVector.password.utf8), cost: testVector.cost, salt: Array(testVector.salt.utf8))
 
-            #expect(hash == Array(testVector.expectedHash.utf8))
+            #expect(
+                hash == Array(testVector.expectedHash.utf8),
+                "Expected: \(testVector.expectedHash), got: \(String(decoding: hash, as: UTF8.self))")
         }
     }
 

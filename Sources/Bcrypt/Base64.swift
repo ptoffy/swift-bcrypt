@@ -12,7 +12,7 @@ struct Base64 {
         0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
         0x59, 0x5A, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b,
         0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78,
-        0x79, 0x80, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+        0x79, 0x7a, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
     ]
 
     @usableFromInline
@@ -50,50 +50,44 @@ struct Base64 {
 
         while offset < len {
             c1 = bytes[offset] & 0xff
-            offset += 1
-            result.append(encodingTable[Int((c1 >> 2) & 0x3f)])
-            c1 = (c1 & 0x03) << 4
+            offset &+= 1
+            result.append(encodingTable[Int(truncatingIfNeeded: (c1 >> 2) & 0x3f)])
+            c1 = (c1 & 0x03) &<< 4
             if offset >= len {
-                result.append(encodingTable[Int(c1 & 0x3f)])
+                result.append(encodingTable[Int(truncatingIfNeeded: c1 & 0x3f)])
                 break
             }
 
             c2 = bytes[offset] & 0xff
-            offset += 1
-            c1 |= (c2 >> 4) & 0x0f
-            result.append(encodingTable[Int(c1 & 0x3f)])
-            c1 = (c2 & 0x0f) << 2
+            offset &+= 1
+            c1 |= (c2 &>> 4) & 0x0f
+            result.append(encodingTable[Int(truncatingIfNeeded: c1 & 0x3f)])
+            c1 = (c2 & 0x0f) &<< 2
             if offset >= len {
-                result.append(encodingTable[Int(c1 & 0x3f)])
+                result.append(encodingTable[Int(truncatingIfNeeded: c1 & 0x3f)])
                 break
             }
 
             c2 = bytes[offset] & 0xff
-            offset += 1
-            c1 |= (c2 >> 6) & 0x03
-            result.append(encodingTable[Int(c1 & 0x3f)])
-            result.append(encodingTable[Int(c2 & 0x3f)])
+            offset &+= 1
+            c1 |= (c2 &>> 6) & 0x03
+            result.append(encodingTable[Int(truncatingIfNeeded: c1 & 0x3f)])
+            result.append(encodingTable[Int(truncatingIfNeeded: c2 & 0x3f)])
         }
 
         return result
     }
 
-    private static func char64of(x: UInt8) -> UInt8 {
-        guard x >= 0, x <= 128 - 1 else {
-            // The character would go out of bounds of the pre-calculated array so return -1.
-            return UInt8.max
-        }
-
-        // Return the matching Base64 encoded character.
-        return decodingTable[Int(x)]
+    private static func char64(of x: UInt8) -> UInt8 {
+        x > 127 ? 255 : decodingTable[Int(x)]
     }
 
     @usableFromInline
-    static func decode(_ s: [UInt8], count maxolen: UInt) -> [UInt8] {
-        let maxolen = Int(maxolen)
+    static func decode(_ s: [UInt8], count maxolen: Int) -> [UInt8] {
+        let maxolen = maxolen
 
-        var off: Int = 0
-        var olen: Int = 0
+        var off = 0
+        var olen = 0
         var result = [UInt8](repeating: 0, count: maxolen)
 
         var c1: UInt8
@@ -103,43 +97,43 @@ struct Base64 {
         var o: UInt8
 
         while off < s.count - 1 && olen < maxolen {
-            c1 = char64of(x: s[off])
-            off += 1
-            c2 = char64of(x: s[off])
-            off += 1
+            c1 = char64(of: s[off])
+            off &+= 1
+            c2 = char64(of: s[off])
+            off &+= 1
             if c1 == UInt8.max || c2 == UInt8.max {
                 break
             }
 
-            o = c1 << 2
-            o |= (c2 & 0x30) >> 4
+            o = c1 &<< 2
+            o |= (c2 & 0x30) &>> 4
             result[olen] = o
-            olen += 1
+            olen &+= 1
             if olen >= maxolen || off >= s.count {
                 break
             }
 
-            c3 = char64of(x: s[Int(off)])
-            off += 1
+            c3 = char64(of: s[off])
+            off &+= 1
 
             if c3 == UInt8.max {
                 break
             }
 
-            o = (c2 & 0x0f) << 4
-            o |= (c3 & 0x3c) >> 2
+            o = (c2 & 0x0f) &<< 4
+            o |= (c3 & 0x3c) &>> 2
             result[olen] = o
-            olen += 1
+            olen &+= 1
             if olen >= maxolen || off >= s.count {
                 break
             }
 
-            c4 = char64of(x: s[off])
-            off += 1
-            o = (c3 & 0x03) << 6
+            c4 = char64(of: s[off])
+            off &+= 1
+            o = (c3 & 0x03) &<< 6
             o |= c4
             result[olen] = o
-            olen += 1
+            olen &+= 1
         }
 
         return Array(result[0..<olen])
