@@ -1,9 +1,3 @@
-#if canImport(FoundationEssentials)
-    import FoundationEssentials
-#else
-    import Foundation
-#endif
-
 struct Verifier {
     private let version: BcryptVersion
     private let hasher: Hasher

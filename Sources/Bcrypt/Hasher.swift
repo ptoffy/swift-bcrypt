@@ -1,5 +1,3 @@
-import Foundation
-
 public struct Hasher {
     @usableFromInline static let cipherText = Array("OrpheanBeholderScryDoubt".utf8)
     @usableFromInline static let maxSalt = 16
@@ -86,7 +84,15 @@ public struct Hasher {
 
         var output = [UInt8]()
 
-        let prefix = version.identifier + [UInt8]("\(String(format: "%02d", cost))$".utf8)
+        let cost: [UInt8] =
+            switch cost {
+            case 0...9:
+                [0x30, UInt8(cost + 0x30)]
+            default:
+                [UInt8(cost / 10 + 0x30), UInt8(cost % 10 + 0x30)]
+            }
+
+        let prefix = version.identifier + cost + [36]
 
         output += prefix
         output += salt

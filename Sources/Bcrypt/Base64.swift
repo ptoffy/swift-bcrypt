@@ -1,9 +1,3 @@
-#if canImport(FoundationEssentials)
-    import FoundationEssentials
-#else
-    import Foundation
-#endif
-
 @usableFromInline
 struct Base64 {
     @usableFromInline
