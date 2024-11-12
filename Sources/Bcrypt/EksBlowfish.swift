@@ -2,7 +2,7 @@
 ///
 /// This work is based on
 /// 1. Applied Cryptography, Second Edition by Bruce Schneier, section 14 and the corresponding code in Part V.
-/// 2. The  OpenBSD implementation of bcrypt at https://github.com/openbsd/src/blob/master/lib/libc/crypt/bcrypt.c.
+/// 2. The OpenBSD implementation of bcrypt at https://github.com/openbsd/src/blob/master/lib/libc/crypt/bcrypt.c.
 ///   The function names and variable names are kept the same as in the OpenBSD implementation.
 @usableFromInline enum EksBlowfish {
     @usableFromInline static let N = 16  // Cipher Rounds
