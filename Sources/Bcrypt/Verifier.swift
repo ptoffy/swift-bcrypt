@@ -1,16 +1,17 @@
 struct Verifier {
-    private let version: BcryptVersion
-    private let hasher: Hasher
-
-    init(version: BcryptVersion) {
-        self.version = version
-        self.hasher = Hasher(version: version)
-    }
-
     @inlinable
     public func verify(password: [UInt8], hash goodHash: [UInt8]) throws -> Bool {
-        let hash = try hasher.hash(password: password, cost: 6, salt: goodHash)
-        return hash == goodHash
+        let prefix = goodHash.prefix(7)
+            
+        let version = BcryptVersion(identifier: Array(prefix[1...2]))
+        let cost = prefix[4...5].reduce(0) { $0 * 10 + Int($1 - 48) }
+        
+        let salt = Array(goodHash[7...28])
+        
+        let hasher = Hasher(version: version)
+        let newHash = try hasher.hash(password: password, cost: cost, salt: salt)
+
+        return newHash == goodHash
     }
 
 }

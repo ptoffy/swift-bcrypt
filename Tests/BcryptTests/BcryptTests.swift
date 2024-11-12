@@ -64,6 +64,16 @@ struct BcryptTests {
                 "Expected: \(testVector.expectedHash), got: \(String(decoding: hash, as: UTF8.self))")
         }
     }
+    
+    @Test("End to end")
+    func endToEnd() throws {
+        let password = "password"
+        let cost = 12
+        
+        let hash = try Hasher().hash(password: Array(password.utf8), cost: cost)
+        let verifier = Verifier()
+        #expect(try verifier.verify(password: Array(password.utf8), hash: hash))
+    }
 
     @Test("Correct Version")
     func correctVersion() throws {
