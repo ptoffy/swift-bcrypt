@@ -33,23 +33,24 @@ public struct Hasher {
         guard (salt.count * 3 / 4) - 1 < Hasher.maxSalt else {
             throw BcryptError.invalidSaltLength
         }
-        
-        let cSalt = Base64.decode(salt, count: UInt(Hasher.maxSalt))
-        
+
+        let cSalt = Base64.decode(salt, count: UInt(Self.maxSalt))
+
         guard password.count > 0 else {
             throw BcryptError.emptyPassword
         }
-        
-        let password = if password[password.endIndex - 1] == 0 {
-            Array(password[password.startIndex..<password.endIndex - 1]) + [0]
-        } else {
-            password + [0]
-        }
-        
+
+        let password =
+            if password[password.endIndex - 1] == 0 {
+                Array(password[password.startIndex..<password.endIndex - 1]) + [0]
+            } else {
+                password + [0]
+            }
+
         if cost < 4 || cost > 31 {
             throw BcryptError.invalidCost
         }
-        
+
         let (p, s) = EksBlowfish.setup(password: password, salt: cSalt, cost: cost)
 
         var cData = [UInt32](repeating: 0, count: Hasher.words)
@@ -93,7 +94,7 @@ public struct Hasher {
 
         output += prefix
         output += salt
-        output += Base64.encode(cipherText, count: UInt(Hasher.hashSpace))
+        output += Base64.encode(cipherText, count: 4 * Self.words - 1)
 
         return output
     }
@@ -110,7 +111,7 @@ public struct Hasher {
             cSalt[i] = UInt8.random(in: .min ... .max)
         }
 
-        let encodedSalt = Base64.encode(cSalt, count: UInt(maxSalt))
+        let encodedSalt = Base64.encode(cSalt, count: Self.hashSpace)
         for (i, byte) in encodedSalt.enumerated() {
             if i < saltSpace {
                 salt[i] = byte

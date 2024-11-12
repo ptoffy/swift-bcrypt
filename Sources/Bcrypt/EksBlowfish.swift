@@ -25,7 +25,7 @@
 
         return (p, s)
     }
-    
+
     @usableFromInline
     static func stream2word(data: [UInt8], j: inout Int) -> UInt32 {
         var word: UInt32 = 0
@@ -135,7 +135,7 @@
         var Xr = xr
 
         Xl ^= p[0]
-        
+
         func F(s: [[UInt32]], x: UInt32) -> UInt32 {
             let a = s[0][Int(truncatingIfNeeded: (x &>> 24) & 0xff)]
             let b = s[1][Int(truncatingIfNeeded: (x &>> 16) & 0xff)]

@@ -7,38 +7,38 @@
 @usableFromInline
 struct Base64 {
     @usableFromInline
-    static let encodingTable : [UInt8] = [
+    static let encodingTable: [UInt8] = [
         0x2e, 0x2f, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b,
         0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
         0x59, 0x5A, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b,
         0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78,
-        0x79, 0x80, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39
+        0x79, 0x80, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
     ]
 
     @usableFromInline
-    static let decodingTable : [UInt8]  = [
+    static let decodingTable: [UInt8] = [
         .max, .max, .max, .max, .max, .max, .max, .max, .max, .max,
         .max, .max, .max, .max, .max, .max, .max, .max, .max, .max,
         .max, .max, .max, .max, .max, .max, .max, .max, .max, .max,
         .max, .max, .max, .max, .max, .max, .max, .max, .max, .max,
-        .max, .max, .max, .max, .max, .max,  0,  1, 54, 55,
+        .max, .max, .max, .max, .max, .max, 0, 1, 54, 55,
         56, 57, 58, 59, 60, 61, 62, 63, .max, .max,
-        .max, .max, .max, .max, .max,  2,  3,  4,  5,  6,
-        7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        .max, .max, .max, .max, .max, 2, 3, 4, 5, 6,
+        7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
         17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
         27, .max, .max, .max, .max, .max, .max, 28, 29, 30,
         31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
         41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-        51, 52, 53, .max, .max, .max, .max, .max
+        51, 52, 53, .max, .max, .max, .max, .max,
     ]
 
     @usableFromInline
-    static func encode(_ bytes: [UInt8], count: UInt) -> [UInt8] {
+    static func encode(_ bytes: [UInt8], count: Int) -> [UInt8] {
         guard bytes.count > 0 || count > 0 else {
             return []
         }
 
-        var len: Int = Int(count)
+        var len = count
         if len > bytes.count {
             len = bytes.count
         }
@@ -141,7 +141,7 @@ struct Base64 {
             result[olen] = o
             olen += 1
         }
-        
+
         return Array(result[0..<olen])
     }
 }

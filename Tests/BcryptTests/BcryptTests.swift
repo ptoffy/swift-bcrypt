@@ -10,16 +10,16 @@ struct BcryptTests {
         let testVectors: [(password: String, cost: Int, salt: String, expectedHash: String)] =
             [
                 ("ππππππππ", 10, ".TtQJ4Jr6isd4Hp.mVfZeu", "$2a$10$.TtQJ4Jr6isd4Hp.mVfZeuh6Gws4rOQ/vdBczhDx.19NFK0Y84Dle"),
-                
+
                 // see: http://openwall.info/wiki/john/sample-hashes
                 ("password", 5, "bvIG6Nmid91Mu9RcmmWZfO", "$2a$05$bvIG6Nmid91Mu9RcmmWZfO5HJIMCT8riNW0hEp8f6/FuA2/mHZFpe"),
-                
+
                 // see: http://cvsweb.openwall.com/cgi/cvsweb.cgi/Owl/packages/glibc/crypt_blowfish/wrapper.c?rev=HEAD
                 ("U*U", 5, "CCCCCCCCCCCCCCCCCCCCC.", "$2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW"),
                 ("U*U*", 5, "CCCCCCCCCCCCCCCCCCCCC.", "$2a$05$CCCCCCCCCCCCCCCCCCCCC.VGOzA784oUp/Z0DY336zx7pLYAy0lwK"),
                 ("U*U*U", 5, "XXXXXXXXXXXXXXXXXXXXXO", "$2a$05$XXXXXXXXXXXXXXXXXXXXXOAcXxm9kjPGEMsLznoKqmqw7tc8WCx4a"),
                 ("", 6, "DCq7YPn5Rq63x1Lad4cll.", "$2a$06$DCq7YPn5Rq63x1Lad4cll.TV4S6ytwfsfvkgY8jIucDrjc8deX1s."),
-                
+
                 // see: https://github.com/BcryptNet/bcrypt.net/blob/main/src/BCrypt.Net.UnitTests/BCryptTests.cs
                 ("", 8, "HqWuK6/Ng6sg9gQzbLrgb.", "$2a$08$HqWuK6/Ng6sg9gQzbLrgb.Tl.ZHfXLhvt/SgVyWhQqgqcZ7ZuUtye"),
                 ("", 10, "k1wbIrmNyFAPwPVPSVa/ze", "$2a$10$k1wbIrmNyFAPwPVPSVa/zecw2BCEnBwVS2GbrmgzxFUOqW9dk4TCW"),
@@ -60,18 +60,12 @@ struct BcryptTests {
                 ),
             ]
 
-//        for testVector in testVectors {
-//            let hash = try Hasher(version: .v2a)
-//                .hash(password: Array(testVector.password.utf8), cost: testVector.cost, salt: Array(testVector.salt.utf8))
-//
-//            #expect(hash == Array(testVector.expectedHash.utf8))
-//        }
-        
-        let hash = try Hasher(version: .v2a)
-            .hash(password: Array(testVectors[1].password.utf8), cost: testVectors[1].cost, salt: Array(testVectors[1].salt.utf8))
-        
-        #expect(hash == Array(testVectors[1].expectedHash.utf8))
+        for testVector in testVectors {
+            let hash = try Hasher(version: .v2a)
+                .hash(password: Array(testVector.password.utf8), cost: testVector.cost, salt: Array(testVector.salt.utf8))
 
+            #expect(hash == Array(testVector.expectedHash.utf8))
+        }
     }
 
     @Test("Correct Version")
