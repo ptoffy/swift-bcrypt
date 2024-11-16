@@ -144,27 +144,13 @@
 
             return (a &+ b) ^ c &+ d
         }
-
-        func BLFRND(s: [[UInt32]], p: [UInt32], i: inout UInt32, j: UInt32, n: Int) {
-            i ^= F(s: s, x: j) ^ p[n]
+        
+        var i = 1
+        while i <= 16 {
+            Xr ^= F(s: s, x: Xl) ^ p[i]
+            Xl ^= F(s: s, x: Xr) ^ p[i + 1]
+            i &+= 2
         }
-
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 1)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 2)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 3)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 4)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 5)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 6)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 7)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 8)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 9)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 10)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 11)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 12)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 13)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 14)
-        BLFRND(s: s, p: p, i: &Xr, j: Xl, n: 15)
-        BLFRND(s: s, p: p, i: &Xl, j: Xr, n: 16)
 
         xl = Xr ^ p[17]
         xr = Xl

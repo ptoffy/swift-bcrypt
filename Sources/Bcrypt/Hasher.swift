@@ -58,6 +58,14 @@ extension Bcrypt {
             } else {
                 password + [0]
             }
+        
+        switch version {
+        case .v2a: break
+        case .v2b:
+            guard password.count <= 72 else {
+                throw BcryptError.passwordTooLong
+            }
+        }
 
         if cost < 4 || cost > 31 {
             throw BcryptError.invalidCost

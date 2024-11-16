@@ -3,4 +3,5 @@ public enum BcryptError: Error {
     case invalidSalt
     case emptyPassword
     case invalidCost
+    case passwordTooLong
 }

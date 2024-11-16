@@ -1,4 +1,4 @@
-name: Lint, Build & Test
+name: Lint, Build & Test with Coverage
 on: 
   push:
     branches: [ main ]
@@ -18,5 +18,9 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+      - name: Generate Coverage Report
+        uses: vapor/swift-codecov-action@v0.3
+        with:
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
       
       
