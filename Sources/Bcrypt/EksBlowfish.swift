@@ -144,7 +144,7 @@
 
             return (a &+ b) ^ c &+ d
         }
-        
+
         var i = 1
         while i <= 16 {
             Xr ^= F(s: s, x: Xl) ^ p[i]

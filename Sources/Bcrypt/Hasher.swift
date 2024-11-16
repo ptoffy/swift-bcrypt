@@ -58,7 +58,7 @@ extension Bcrypt {
             } else {
                 password + [0]
             }
-        
+
         switch version {
         case .v2a: break
         case .v2b:
