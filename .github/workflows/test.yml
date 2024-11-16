@@ -17,7 +17,7 @@ jobs:
       - name: Build
         run: swift build
       - name: Test
-        run: swift test
+        run: swift test --enable-code-coverage
       - name: Generate Coverage Report
         uses: vapor/swift-codecov-action@v0.3
         with:
