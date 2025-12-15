@@ -1,1 +1,1 @@
-enum Bcrypt: Sendable {}
+public enum Bcrypt: Sendable {}

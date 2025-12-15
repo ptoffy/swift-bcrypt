@@ -44,7 +44,7 @@
     }
 
     @usableFromInline
-    static func expand0State(key: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
+    static func expand0State(key: borrowing [UInt8], p: consuming [UInt32], s: consuming [[UInt32]]) -> ([UInt32], [[UInt32]]) {
         var p = p
 
         var j = 0

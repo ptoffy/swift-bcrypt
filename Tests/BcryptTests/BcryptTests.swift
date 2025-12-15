@@ -1,11 +1,10 @@
 import Testing
-
-@testable import Bcrypt
+import Bcrypt
 
 @Suite("Bcrypt Tests")
 struct BcryptTests {
     @Test("Test Vectors Hashing")
-    func testVectorsHashin() throws {
+    func testVectorsHashing() throws {
         let testVectors: [(password: String, cost: Int, salt: String, expectedHash: String)] =
             [
                 ("ππππππππ", 10, ".TtQJ4Jr6isd4Hp.mVfZeu", "$2a$10$.TtQJ4Jr6isd4Hp.mVfZeuh6Gws4rOQ/vdBczhDx.19NFK0Y84Dle"),

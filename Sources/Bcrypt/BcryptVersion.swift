@@ -28,6 +28,7 @@ public enum BcryptVersion {
         [.separator, majorVersion, minorVersion, .separator]  // $2x$
     }
 
+    @usableFromInline
     init(identifier: [UInt8]) {
         switch identifier {
         case [0x32, 0x61]: self = .v2a
