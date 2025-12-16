@@ -125,9 +125,10 @@
             i &+= 1
         }
     }
-    
+
     @usableFromInline
-    static func encipher(xl: inout UInt32, xr: inout UInt32, p: [UInt32], s: [UInt32]) {
+    @inline(__always)
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: UnsafePointer<UInt32>, s: UnsafePointer<UInt32>) {
         var Xl = xl
         var Xr = xr
 
@@ -135,17 +136,19 @@
 
         var i = 1
         while i <= 16 {
-            Xr ^=
-                (s[Int(truncatingIfNeeded: (Xl &>> 24) & 0x0ff)]
-                    &+ s[Int(truncatingIfNeeded: (Xl &>> 16) & 0x0ff)]
-                    ^ s[Int(truncatingIfNeeded: (Xl &>> 8) & 0x0ff)]
-                    &+ s[Int(truncatingIfNeeded: Xl & 0x0ff)]) ^ p[i]
+            // F(Xr)
+            let a1 = s[Int(truncatingIfNeeded: (Xl &>> 24) & 0xff)]
+            let b1 = s[0x100 &+ Int(truncatingIfNeeded: (Xl &>> 16) & 0xff)]
+            let c1 = s[0x200 &+ Int(truncatingIfNeeded: (Xl &>> 8) & 0xff)]
+            let d1 = s[0x300 &+ Int(truncatingIfNeeded: Xl & 0xff)]
+            Xr ^= ((a1 &+ b1) ^ c1 &+ d1) ^ p[i]
 
-            Xl ^=
-                (s[Int(truncatingIfNeeded: (Xr &>> 24) & 0x0ff)]
-                    &+ s[Int(truncatingIfNeeded: (Xr &>> 16) & 0x0ff)]
-                    ^ s[Int(truncatingIfNeeded: (Xr &>> 8) & 0x0ff)]
-                    &+ s[Int(truncatingIfNeeded: Xr & 0x0ff)]) ^ p[i + 1]
+            // F(Xl)
+            let a2 = s[Int(truncatingIfNeeded: (Xr &>> 24) & 0xff)]
+            let b2 = s[0x100 &+ Int(truncatingIfNeeded: (Xr &>> 16) & 0xff)]
+            let c2 = s[0x200 &+ Int(truncatingIfNeeded: (Xr &>> 8) & 0xff)]
+            let d2 = s[0x300 &+ Int(truncatingIfNeeded: Xr & 0xff)]
+            Xl ^= ((a2 &+ b2) ^ c2 &+ d2) ^ p[i &+ 1]
 
             i &+= 2
         }
