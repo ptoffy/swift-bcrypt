@@ -8,7 +8,7 @@
     @usableFromInline static let N = 16  // Cipher Rounds
 
     @usableFromInline
-    static func setup(password: [UInt8], salt: [UInt8], cost: Int) -> (p: [UInt32], s: [[UInt32]]) {
+    static func setup(password: [UInt8], salt: [UInt8], cost: Int) -> (p: [UInt32], s: [UInt32]) {
         assert(cost >= 4 && cost <= 31, "Cost must be between 4 and 31, is \(cost)")
         assert(salt.count == 16, "Salt must be 16 bytes long, is \(salt.count)")
         assert(password.count > 0 && password.count <= 72, "Password must be between 1 and 72 bytes long, is \(password.count)")
@@ -44,7 +44,7 @@
     }
 
     @usableFromInline
-    static func expand0State(key: borrowing [UInt8], p: consuming [UInt32], s: consuming [[UInt32]]) -> ([UInt32], [[UInt32]]) {
+    static func expand0State(key: borrowing [UInt8], p: consuming [UInt32], s: consuming [UInt32]) -> ([UInt32], [UInt32]) {
         var p = p
 
         var j = 0
@@ -74,8 +74,8 @@
             while k < 256 {
                 encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
-                s[i][k] = dataL
-                s[i][k &+ 1] = dataR
+                s[i &* 0x100 &+ k] = dataL
+                s[i &* 0x100 &+ (k &+ 1)] = dataR
                 k &+= 2
             }
             i &+= 1
@@ -85,7 +85,12 @@
     }
 
     @usableFromInline
-    static func expandState(password: [UInt8], salt: [UInt8], p: [UInt32], s: [[UInt32]]) -> ([UInt32], [[UInt32]]) {
+    static func expandState(
+        password: [UInt8],
+        salt: [UInt8],
+        p: [UInt32],
+        s: [UInt32]
+    ) -> ([UInt32], [UInt32]) {
         var p = p
 
         var j = 0
@@ -119,8 +124,8 @@
                 dataR ^= stream2word(data: salt, j: &j)
                 encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
-                s[i][k] = dataL
-                s[i][k &+ 1] = dataR
+                s[i &* 0x100 &+ k] = dataL
+                s[i &* 0x100 &+ (k &+ 1)] = dataR
                 k &+= 2
             }
             i &+= 1
@@ -129,21 +134,21 @@
         return (p, s)
     }
 
+    private static func F(s: borrowing [UInt32], x: borrowing UInt32) -> UInt32 {
+        let a = s[Int(truncatingIfNeeded: (x &>> 24) & 0xff)]
+        let b = s[0x100 + Int(truncatingIfNeeded: (x &>> 16) & 0xff)]
+        let c = s[0x200 + Int(truncatingIfNeeded: (x &>> 8) & 0xff)]
+        let d = s[0x300 + Int(truncatingIfNeeded: (x & 0xff))]
+
+        return (a &+ b) ^ c &+ d
+    }
+
     @usableFromInline
-    static func encipher(xl: inout UInt32, xr: inout UInt32, p: [UInt32], s: [[UInt32]]) {
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: borrowing [UInt32], s: borrowing [UInt32]) {
         var Xl = xl
         var Xr = xr
 
         Xl ^= p[0]
-
-        func F(s: [[UInt32]], x: UInt32) -> UInt32 {
-            let a = s[0][Int(truncatingIfNeeded: (x &>> 24) & 0xff)]
-            let b = s[1][Int(truncatingIfNeeded: (x &>> 16) & 0xff)]
-            let c = s[2][Int(truncatingIfNeeded: (x &>> 8) & 0xff)]
-            let d = s[3][Int(truncatingIfNeeded: (x & 0xff))]
-
-            return (a &+ b) ^ c &+ d
-        }
 
         var i = 1
         while i <= 16 {

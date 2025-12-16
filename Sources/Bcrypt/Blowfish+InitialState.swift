@@ -1,5 +1,7 @@
 extension EksBlowfish {
-    @usableFromInline static let initialP: [UInt32] = [
+    @usableFromInline
+    @inline(__always)
+    static let initialP: [UInt32] = [
         0x243f_6a88, 0x85a3_08d3, 0x1319_8a2e, 0x0370_7344,
         0xa409_3822, 0x299f_31d0, 0x082e_fa98, 0xec4e_6c89,
         0x4528_21e6, 0x38d0_1377, 0xbe54_66cf, 0x34e9_0c6c,
@@ -7,7 +9,9 @@ extension EksBlowfish {
         0x9216_d5d9, 0x8979_fb1b,
     ]
 
-    @usableFromInline static let initialS: [[UInt32]] = [
+    @usableFromInline
+    @inline(__always)
+    static let initialS: [UInt32] = [
         [
             0xd131_0ba6, 0x98df_b5ac, 0x2ffd_72db, 0xd01a_dfb7,
             0xb8e1_afed, 0x6a26_7e96, 0xba7c_9045, 0xf12c_7f99,
@@ -272,5 +276,5 @@ extension EksBlowfish {
             0x90d4_f869, 0xa65c_dea0, 0x3f09_252d, 0xc208_e69f,
             0xb74e_6132, 0xce77_e25b, 0x578f_dfe3, 0x3ac3_72e6,
         ],
-    ]
+    ].flatMap { $0 }
 }

@@ -1,5 +1,5 @@
-import Testing
 import Bcrypt
+import Testing
 
 @Suite("Bcrypt Tests")
 struct BcryptTests {
