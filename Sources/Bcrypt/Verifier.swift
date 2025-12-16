@@ -6,7 +6,7 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: `true` if the password matches the hash, `false` otherwise.
     @inlinable
-    public static func verify(password: String, hash: String) throws -> Bool {
+    public static func verify(password: String, hash: String) throws(BcryptError) -> Bool {
         try verify(password: Array(password.utf8), hash: Array(hash.utf8))
     }
 
@@ -17,7 +17,7 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: `true` if the password matches the hash, `false` otherwise.
     @inlinable
-    public static func verify(password: [UInt8], hash goodHash: [UInt8]) throws -> Bool {
+    public static func verify(password: [UInt8], hash goodHash: [UInt8]) throws(BcryptError) -> Bool {
         let prefix = goodHash.prefix(7)
 
         let version = BcryptVersion(identifier: Array(prefix[1...2]))

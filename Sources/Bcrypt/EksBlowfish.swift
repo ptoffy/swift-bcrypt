@@ -11,7 +11,9 @@
     static func setup(password: [UInt8], salt: [UInt8], cost: Int) -> (p: [UInt32], s: [UInt32]) {
         assert(cost >= 4 && cost <= 31, "Cost must be between 4 and 31, is \(cost)")
         assert(salt.count == 16, "Salt must be 16 bytes long, is \(salt.count)")
-        assert(password.count > 0 && password.count <= 72, "Password must be between 1 and 72 bytes long, is \(password.count)")
+        assert(
+            password.count > 0 && password.count <= 73,
+            "Password must be between 1 and 73 bytes long counting the NULL terminator, is \(password.count)")
 
         var (p, s) = (Self.initialP, Self.initialS)
 

@@ -13,7 +13,7 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: the hashed password.
     @inlinable
-    public static func hash(password: String, cost: Int = 10, version: BcryptVersion = .v2b) throws -> String {
+    public static func hash(password: String, cost: Int = 10, version: BcryptVersion = .v2b) throws(BcryptError) -> String {
         String(
             decoding: try hash(password: Array(password.utf8), cost: cost, salt: Self.generateRandomSalt(), version: version),
             as: UTF8.self
@@ -28,7 +28,7 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: the hashed password.
     @inlinable
-    public static func hash(password: [UInt8], cost: Int = 10, version: BcryptVersion = .v2b) throws -> [UInt8] {
+    public static func hash(password: [UInt8], cost: Int = 10, version: BcryptVersion = .v2b) throws(BcryptError) -> [UInt8] {
         try hash(password: password, cost: cost, salt: Self.generateRandomSalt(), version: version)
     }
 
@@ -41,7 +41,8 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: the hashed password.
     @inlinable
-    public static func hash(password: [UInt8], cost: Int = 10, salt: [UInt8], version: BcryptVersion = .v2b) throws -> [UInt8] {
+    public static func hash(password: [UInt8], cost: Int = 10, salt: [UInt8], version: BcryptVersion = .v2b) throws(BcryptError) -> [UInt8]
+    {
         guard (salt.count * 3 / 4) - 1 < Self.maxSalt else {
             throw BcryptError.invalidSaltLength
         }
@@ -62,7 +63,7 @@ extension Bcrypt {
         switch version {
         case .v2a: break
         case .v2b:
-            guard password.count <= 72 else {
+            guard password.count <= 73 else {  // 72 + 1 because of the NULL terminator
                 throw BcryptError.passwordTooLong
             }
         }

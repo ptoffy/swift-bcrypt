@@ -31,4 +31,64 @@ struct BcryptTests {
 
         #expect(hash.hasPrefix("$2b$06$"))
     }
+
+    @Test("Empty password")
+    func emptyPassword() throws {
+        #expect(throws: Error.self) {
+            try Bcrypt.hash(password: "", cost: 6)
+        }
+    }
+
+    @Test("Maximum length password (72 bytes)")
+    func maximumLengthPassword() throws {
+        let password = String(repeating: "a", count: 72)
+        let hash = try Bcrypt.hash(password: password, cost: 6)
+        #expect(try Bcrypt.verify(password: password, hash: hash))
+    }
+
+    @Test("Password too long")
+    func passwordTooLong() throws {
+        let password = String(repeating: "a", count: 73)
+        #expect(throws: BcryptError.passwordTooLong) {
+            try Bcrypt.hash(password: password, cost: 6)
+        }
+    }
+
+    @Test("Different passwords produce different hashes")
+    func differentPasswordsDifferentHashes() throws {
+        let hash1 = try Bcrypt.hash(password: "password1", cost: 6)
+        let hash2 = try Bcrypt.hash(password: "password2", cost: 6)
+
+        #expect(hash1 != hash2)
+    }
+
+    @Test("Same password with different salts produces different hashes")
+    func samePwDifferentSalts() throws {
+        let password = "test"
+        let hash1 = try Bcrypt.hash(password: password, cost: 6)
+        let hash2 = try Bcrypt.hash(password: password, cost: 6)
+
+        // Different salts should produce different hashes
+        #expect(hash1 != hash2)
+
+        // But both should verify
+        #expect(try Bcrypt.verify(password: password, hash: hash1))
+        #expect(try Bcrypt.verify(password: password, hash: hash2))
+    }
+
+    @Test("Unicode password handling")
+    func unicodePassword() throws {
+        let passwords = ["πάσσω", "密码", "🔐🔑", "Ñoño"]
+
+        for password in passwords {
+            let hash = try Bcrypt.hash(password: password, cost: 4)
+            #expect(try Bcrypt.verify(password: password, hash: hash))
+        }
+    }
+
+    @Test("Wrong password fails verification")
+    func wrongPasswordFails() throws {
+        let hash = try Bcrypt.hash(password: "correct", cost: 6)
+        #expect(try !Bcrypt.verify(password: "wrong", hash: hash))
+    }
 }
