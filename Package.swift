@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
@@ -14,7 +14,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Bcrypt"
+            name: "Bcrypt",
         ),
         .testTarget(
             name: "BcryptTests",
