@@ -29,6 +29,6 @@ Currently these are the benchmarks for hashing the password "password" with cost
 | | Release ms | Debug ms | Allocations Release | Allocations Debug |
 |------|------------|----------|---------------------|-------------------|
 | vapor/authentication | 215ms | 337ms | ~13,700 | ~13,800 |
-| swift-bcrypt | 195ms | 453ms | ~13,400 | ~13,500 |
+| swift-bcrypt | 212ms | 454ms | ~13,400 | ~13,400 |
 
     

@@ -68,10 +68,8 @@ struct BcryptTests {
         let hash1 = try Bcrypt.hash(password: password, cost: 6)
         let hash2 = try Bcrypt.hash(password: password, cost: 6)
 
-        // Different salts should produce different hashes
         #expect(hash1 != hash2)
 
-        // But both should verify
         #expect(try Bcrypt.verify(password: password, hash: hash1))
         #expect(try Bcrypt.verify(password: password, hash: hash2))
     }
