@@ -93,15 +93,15 @@
         p: inout [UInt32],
         s: inout [UInt32]
     ) {
-        p.withUnsafeBufferPointer { pBuf in
-            s.withUnsafeBufferPointer { sBuf in
+        p.withUnsafeMutableBufferPointer { pBuf in
+            s.withUnsafeMutableBufferPointer { sBuf in
                 let pPtr = pBuf.baseAddress!
                 let sPtr = sBuf.baseAddress!
 
                 var j = 0
                 var i = 0
                 while i < Self.N &+ 2 {
-                    p[i] ^= stream2word(data: password, j: &j)
+                    pPtr[i] ^= stream2word(data: password, j: &j)
                     i &+= 1
                 }
 
@@ -115,8 +115,8 @@
                     dataR ^= stream2word(data: salt, j: &j)
                     encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
 
-                    p[i] = dataL
-                    p[i &+ 1] = dataR
+                    pPtr[i] = dataL
+                    pPtr[i &+ 1] = dataR
                     i &+= 2
                 }
 
@@ -128,8 +128,8 @@
                         dataR ^= stream2word(data: salt, j: &j)
                         encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
 
-                        s[i &* 0x100 &+ k] = dataL
-                        s[i &* 0x100 &+ (k &+ 1)] = dataR
+                        sPtr[i &* 0x100 &+ k] = dataL
+                        sPtr[i &* 0x100 &+ (k &+ 1)] = dataR
                         k &+= 2
                     }
                     i &+= 1
