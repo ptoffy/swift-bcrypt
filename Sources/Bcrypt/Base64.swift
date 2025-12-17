@@ -75,8 +75,6 @@ struct Base64 {
 
     @usableFromInline
     static func decode(_ s: [UInt8], count maxolen: Int) -> [UInt8] {
-        let maxolen = maxolen
-
         var off = 0
         var olen = 0
         var result = [UInt8](repeating: 0, count: maxolen)
