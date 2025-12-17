@@ -54,7 +54,7 @@ extension Bcrypt {
         }
 
         let password =
-            if password[password.endIndex - 1] == 0 {
+            if password[password.endIndex &- 1] == 0 {
                 Array(password[password.startIndex..<password.endIndex - 1]) + [0]
             } else {
                 password + [0]
@@ -89,11 +89,11 @@ extension Bcrypt {
             var xl: UInt32 = 0
             var xr: UInt32 = 0
             while j < Self.words / 2 {
-                xl = cData[j * 2]
-                xr = cData[j * 2 + 1]
+                xl = cData[j &* 2]
+                xr = cData[j &* 2 &+ 1]
                 EksBlowfish.encipher(xl: &xl, xr: &xr, p: p, s: s)
-                cData[j * 2] = xl
-                cData[j * 2 + 1] = xr
+                cData[j &* 2] = xl
+                cData[j &* 2 &+ 1] = xr
                 j &+= 1
             }
             i &+= 1
@@ -102,10 +102,10 @@ extension Bcrypt {
         var cipherText = Self.cipherText
         i = 0
         while i < Self.words {
-            cipherText[4 * i + 3] = UInt8(cData[i] & 0xff)
-            cipherText[4 * i + 2] = UInt8((cData[i] &>> 8) & 0xff)
-            cipherText[4 * i + 1] = UInt8((cData[i] &>> 16) & 0xff)
-            cipherText[4 * i + 0] = UInt8((cData[i] &>> 24) & 0xff)
+            cipherText[4 &* i &+ 3] = UInt8(cData[i] & 0xff)
+            cipherText[4 &* i &+ 2] = UInt8((cData[i] &>> 8) & 0xff)
+            cipherText[4 &* i &+ 1] = UInt8((cData[i] &>> 16) & 0xff)
+            cipherText[4 &* i &+ 0] = UInt8((cData[i] &>> 24) & 0xff)
             i &+= 1
         }
 
