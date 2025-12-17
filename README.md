@@ -24,10 +24,11 @@ let isValid = try Bcrypt.verify(password: password, hash: hash)
 
 ## Performance
 
-Currently, performance on an M2 MacBook Air measured using Instruments looks like this:
+Currently these are the benchmarks for hashing the password "password" with cost factor 12, compared to Vapor's C Bcrypt implementation. Measurements were taken on an M2 MacBook Air.
 
-| Mode | Cost Factor | Hash Time (ms) |
-|------|-------------|-----------------|
-| Release | 12 | 195ms |
-| Debug | 12 | 453ms |
+| Mode | Release ms | Debug ms | Allocations Release | Allocations Debug |
+|------|------------|----------|---------------------|-------------------|
+| vapor/authentication | 215ms | 337ms | ~13,700 | ~13,800 |
+| swift-bcrypt | 195ms | 453ms | ~13,400 | ~13,500 |
+
     
