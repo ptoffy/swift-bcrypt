@@ -22,3 +22,12 @@ let hash = try Bcrypt.hash(password: password)
 let isValid = try Bcrypt.verify(password: password, hash: hash)
 ```
 
+## Performance
+
+Currently, performance on an M2 MacBook Air measured using Instruments looks like this:
+
+| Mode | Cost Factor | Hash Time (ms) |
+|------|-------------|-----------------|
+| Release | 12 | 195ms |
+| Debug | 12 | 453ms |
+    
