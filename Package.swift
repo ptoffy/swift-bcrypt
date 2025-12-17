@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-bcrypt",
+    name: "bcrypt",
     platforms: [
         .macOS(.v10_15)
     ],

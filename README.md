@@ -1,11 +1,11 @@
-# Swift Bcrypt
+# Bcrypt
 
 A native, dependency and Foundation free Swift implementation of the bcrypt password hashing algorithm, based on the [OpenBSD implementation](https://github.com/openbsd/src/blob/master/lib/libc/crypt/bcrypt.c).
 
 ## Installation
 
 ```swift
-.package(url: "https://github.com/ptoffy/swift-bcrypt.git", branch: "main")
+.package(url: "https://github.com/ptoffy/bcrypt.git", branch: "main")
 ```
 
 ```swift
@@ -29,6 +29,6 @@ Currently these are the benchmarks for hashing the password "password" with cost
 | | Release ms | Debug ms | Allocations Release | Allocations Debug |
 |------|------------|----------|---------------------|-------------------|
 | vapor/authentication | 215ms | 337ms | ~13,700 | ~13,800 |
-| swift-bcrypt | 195ms | 453ms | ~13,400 | ~13,500 |
+| bcrypt | 195ms | 453ms | ~13,400 | ~13,500 |
 
     
