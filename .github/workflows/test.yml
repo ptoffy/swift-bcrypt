@@ -1,15 +1,17 @@
 name: Lint, Build & Test with Coverage
-on: 
+on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     container: swift:noble
     steps:
+      - name: Install curl
+        run: apt-get update -yq && apt-get install -y curl
       - name: Checkout
         uses: actions/checkout@v4
       - name: Lint
@@ -22,5 +24,3 @@ jobs:
         uses: vapor/swift-codecov-action@v0.3
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
-      
-      
