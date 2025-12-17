@@ -83,20 +83,27 @@ extension Bcrypt {
             i &+= 1
         }
 
-        i = 0
-        while i < 64 {
-            var j = 0
-            var xl: UInt32 = 0
-            var xr: UInt32 = 0
-            while j < Self.words / 2 {
-                xl = cData[j &* 2]
-                xr = cData[j &* 2 &+ 1]
-                EksBlowfish.encipher(xl: &xl, xr: &xr, p: p, s: s)
-                cData[j &* 2] = xl
-                cData[j &* 2 &+ 1] = xr
-                j &+= 1
+        p.withUnsafeBufferPointer { pBuf in
+            s.withUnsafeBufferPointer { sBuf in
+                let pPtr = pBuf.baseAddress!
+                let sPtr = sBuf.baseAddress!
+
+                i = 0
+                while i < 64 {
+                    var j = 0
+                    var xl: UInt32 = 0
+                    var xr: UInt32 = 0
+                    while j < Self.words / 2 {
+                        xl = cData[j &* 2]
+                        xr = cData[j &* 2 &+ 1]
+                        EksBlowfish.encipher(xl: &xl, xr: &xr, p: pPtr, s: sPtr)
+                        cData[j &* 2] = xl
+                        cData[j &* 2 &+ 1] = xr
+                        j &+= 1
+                    }
+                    i &+= 1
+                }
             }
-            i &+= 1
         }
 
         var cipherText = Self.cipherText
@@ -114,16 +121,16 @@ extension Bcrypt {
         let cost: [UInt8] =
             switch cost {
             case 0...9:
-                [0x30, UInt8(cost + 0x30)]
+                [0x30, UInt8(cost &+ 0x30)]
             default:
-                [UInt8(cost / 10 + 0x30), UInt8(cost % 10 + 0x30)]
+                [UInt8(cost / 10 &+ 0x30), UInt8(cost % 10 &+ 0x30)]
             }
 
         let prefix = version.identifier + cost + [36]
 
         output += prefix
         output += salt
-        output += Base64.encode(cipherText, count: 4 * Self.words - 1)
+        output += Base64.encode(cipherText, count: 4 &* Self.words &- 1)
 
         return output
     }

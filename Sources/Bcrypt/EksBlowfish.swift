@@ -46,40 +46,43 @@
 
         return word
     }
-
     @usableFromInline
     static func expand0State(key: [UInt8], p: inout [UInt32], s: inout [UInt32]) {
-        var j = 0
-        var i = 0
-        while i < Self.N &+ 2 {
-            p[i] ^= stream2word(data: key, j: &j)
-            i &+= 1
-        }
+        p.withUnsafeMutableBufferPointer { pBuf in
+            s.withUnsafeMutableBufferPointer { sBuf in
+                let pPtr = pBuf.baseAddress!
+                let sPtr = sBuf.baseAddress!
 
-        var dataL: UInt32 = 0
-        var dataR: UInt32 = 0
+                var j = 0
+                var i = 0
+                while i < Self.N &+ 2 {
+                    pPtr[i] ^= stream2word(data: key, j: &j)
+                    i &+= 1
+                }
 
-        i = 0
-        j = 0
-        while i < Self.N &+ 2 {
-            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+                var dataL: UInt32 = 0
+                var dataR: UInt32 = 0
 
-            p[i] = dataL
-            p[i &+ 1] = dataR
-            i &+= 2
-        }
+                i = 0
+                while i < Self.N &+ 2 {
+                    encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
+                    pPtr[i] = dataL
+                    pPtr[i &+ 1] = dataR
+                    i &+= 2
+                }
 
-        i = 0
-        while i < 4 {
-            var k = 0
-            while k < 256 {
-                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
-
-                s[i &* 0x100 &+ k] = dataL
-                s[i &* 0x100 &+ (k &+ 1)] = dataR
-                k &+= 2
+                i = 0
+                while i < 4 {
+                    var k = 0
+                    while k < 256 {
+                        encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
+                        sPtr[i &* 0x100 &+ k] = dataL
+                        sPtr[i &* 0x100 &+ (k &+ 1)] = dataR
+                        k &+= 2
+                    }
+                    i &+= 1
+                }
             }
-            i &+= 1
         }
     }
 
@@ -90,41 +93,48 @@
         p: inout [UInt32],
         s: inout [UInt32]
     ) {
-        var j = 0
-        var i = 0
-        while i < Self.N &+ 2 {
-            p[i] ^= stream2word(data: password, j: &j)
-            i &+= 1
-        }
+        p.withUnsafeBufferPointer { pBuf in
+            s.withUnsafeBufferPointer { sBuf in
+                let pPtr = pBuf.baseAddress!
+                let sPtr = sBuf.baseAddress!
 
-        j = 0
-        i = 0
-        var dataL: UInt32 = 0
-        var dataR: UInt32 = 0
+                var j = 0
+                var i = 0
+                while i < Self.N &+ 2 {
+                    p[i] ^= stream2word(data: password, j: &j)
+                    i &+= 1
+                }
 
-        while i < Self.N &+ 2 {
-            dataL ^= stream2word(data: salt, j: &j)
-            dataR ^= stream2word(data: salt, j: &j)
-            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+                j = 0
+                i = 0
+                var dataL: UInt32 = 0
+                var dataR: UInt32 = 0
 
-            p[i] = dataL
-            p[i &+ 1] = dataR
-            i &+= 2
-        }
+                while i < Self.N &+ 2 {
+                    dataL ^= stream2word(data: salt, j: &j)
+                    dataR ^= stream2word(data: salt, j: &j)
+                    encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
 
-        i = 0
-        while i < 4 {
-            var k = 0
-            while k < 256 {
-                dataL ^= stream2word(data: salt, j: &j)
-                dataR ^= stream2word(data: salt, j: &j)
-                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+                    p[i] = dataL
+                    p[i &+ 1] = dataR
+                    i &+= 2
+                }
 
-                s[i &* 0x100 &+ k] = dataL
-                s[i &* 0x100 &+ (k &+ 1)] = dataR
-                k &+= 2
+                i = 0
+                while i < 4 {
+                    var k = 0
+                    while k < 256 {
+                        dataL ^= stream2word(data: salt, j: &j)
+                        dataR ^= stream2word(data: salt, j: &j)
+                        encipher(xl: &dataL, xr: &dataR, p: pPtr, s: sPtr)
+
+                        s[i &* 0x100 &+ k] = dataL
+                        s[i &* 0x100 &+ (k &+ 1)] = dataR
+                        k &+= 2
+                    }
+                    i &+= 1
+                }
             }
-            i &+= 1
         }
     }
 
