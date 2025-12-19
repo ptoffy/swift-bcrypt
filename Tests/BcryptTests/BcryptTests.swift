@@ -119,10 +119,44 @@ struct BcryptTests {
     func propertyHashAndVerify(iteration: Int) throws {
         let passwords = [
             String(repeating: "a", count: Int.random(in: 1...72)),
-            random(),
+            randomASCII(),
+            randomUTF8(),
         ]
 
-        func random() -> String {
+        func randomUTF8() -> String {
+            // Mix of single-byte, 2-byte, 3-byte, and 4-byte UTF-8 characters
+            let unicodeRanges: [ClosedRange<Int>] = [
+                0x0020...0x007E,  // ASCII (1 byte)
+                0x00A0...0x00FF,  // Latin-1 Supplement: é, ñ, ü (2 bytes)
+                0x0370...0x03FF,  // Greek: α, β, γ (2 bytes)
+                0x0400...0x04FF,  // Cyrillic: Д, Ж, Л (2 bytes)
+                0x4E00...0x4E20,  // CJK: 一, 丁, 七 (3 bytes)
+                0x1F300...0x1F320,  // Emojis: 🌀, 🌁, 🌂 (4 bytes)
+            ]
+
+            var result = ""
+            var byteCount = 0
+
+            while byteCount < 60 {
+                let range = unicodeRanges.randomElement()!
+                let value = Int.random(in: range)
+
+                guard let scalar = UnicodeScalar(value) else { continue }
+                let char = Character(scalar)
+                let charString = String(char)
+
+                if byteCount + charString.utf8.count <= 72 {
+                    result += charString
+                    byteCount += charString.utf8.count
+                } else {
+                    break
+                }
+            }
+
+            return result.isEmpty ? "a" : result
+        }
+
+        func randomASCII() -> String {
             let length = Int.random(in: 1...72)
 
             let characters = (1...length).map { _ in  // from space to tilde, all ASCII
