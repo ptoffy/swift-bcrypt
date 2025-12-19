@@ -41,8 +41,9 @@ extension Bcrypt {
     /// - Throws: ``BcryptError``
     /// - Returns: the hashed password.
     @inlinable
-    public static func hash(password: [UInt8], cost: Int = 10, salt: [UInt8], version: BcryptVersion = .v2b) throws(BcryptError) -> [UInt8]
-    {
+    public static func hash(
+        password: [UInt8], cost: Int = 10, salt: [UInt8], version: BcryptVersion = .v2b
+    ) throws(BcryptError) -> [UInt8] {
         guard (salt.count * 3 / 4) - 1 < Self.maxSalt else {
             throw BcryptError.invalidSaltLength
         }

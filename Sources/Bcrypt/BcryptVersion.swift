@@ -1,4 +1,4 @@
-public enum BcryptVersion {
+public enum BcryptVersion: Equatable, Sendable {
     case v2a
     case v2b
     //    case v2x
@@ -7,7 +7,7 @@ public enum BcryptVersion {
     @usableFromInline
     var majorVersion: UInt8 {
         switch self {
-        case .v2a, .v2b  //               , .v2x, .v2y
+        case .v2a, .v2b  // , .v2x, .v2y
             :
             0x32
         }
@@ -29,11 +29,11 @@ public enum BcryptVersion {
     }
 
     @usableFromInline
-    init(identifier: [UInt8]) {
+    init?(identifier: ArraySlice<UInt8>) {
         switch identifier {
-        case [0x32, 0x61]: self = .v2a
-        case [0x32, 0x62]: self = .v2b
-        default: fatalError("Invalid identifier")
+        case [0x24, 0x32, 0x61, 0x24]: self = .v2a
+        case [0x24, 0x32, 0x62, 0x24]: self = .v2b
+        default: return nil
         }
     }
 }
