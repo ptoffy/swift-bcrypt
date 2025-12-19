@@ -54,6 +54,16 @@ struct BcryptTests {
         }
     }
 
+    @Test("UTF-8 bytes exceed limit but character count is OK")
+    func utf8TooLongButCharsOk() throws {
+        // 72 characters, but each 'é' is 2 bytes in UTF-8 => 144 bytes
+        let password = String(repeating: "é", count: 72)
+
+        #expect(throws: BcryptError.passwordTooLong) {
+            try Bcrypt.hash(password: password, cost: 6)
+        }
+    }
+
     @Test("Different passwords produce different hashes")
     func differentPasswordsDifferentHashes() throws {
         let hash1 = try Bcrypt.hash(password: "password1", cost: 6)
