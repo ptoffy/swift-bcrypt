@@ -74,6 +74,8 @@ extension Bcrypt {
         }
 
         let (p, s) = EksBlowfish.setup(password: password, salt: cSalt, cost: cost)
+        let pSpan = p.span
+        let sSpan = s.span
 
         var cData = [UInt32](repeating: 0, count: Self.words)
 
@@ -92,7 +94,7 @@ extension Bcrypt {
             while j < Self.words / 2 {
                 xl = cData[j &* 2]
                 xr = cData[j &* 2 &+ 1]
-                EksBlowfish.encipher(xl: &xl, xr: &xr, p: p, s: s)
+                EksBlowfish.encipher(xl: &xl, xr: &xr, p: pSpan, s: sSpan)
                 cData[j &* 2] = xl
                 cData[j &* 2 &+ 1] = xr
                 j &+= 1

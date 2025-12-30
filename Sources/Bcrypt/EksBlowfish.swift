@@ -16,14 +16,17 @@
             "Password must be between 1 and 73 bytes long counting the NULL terminator, is \(password.count)")
 
         var (p, s) = (Self.initialP, Self.initialS)
+        
+        var pSpan = p.mutableSpan
+        var sSpan = s.mutableSpan
 
-        expandState(password: password, salt: salt, p: &p, s: &s)
+        expandState(password: password, salt: salt, p: &pSpan, s: &sSpan)
 
         var i = 1 &<< cost
 
         while i > 0 {
-            expand0State(key: password, p: &p, s: &s)
-            expand0State(key: salt, p: &p, s: &s)
+            expand0State(key: password, p: &pSpan, s: &sSpan)
+            expand0State(key: salt, p: &pSpan, s: &sSpan)
             i &-= 1
         }
 
@@ -48,7 +51,12 @@
     }
 
     @usableFromInline
-    static func expand0State(key: [UInt8], p: inout [UInt32], s: inout [UInt32]) {
+    @_lifetime(&p, &s)
+    static func expand0State(
+        key: [UInt8],
+        p: inout MutableSpan<UInt32>,
+        s: inout MutableSpan<UInt32>
+    ) {
         var j = 0
         var i = 0
         while i < Self.N &+ 2 {
@@ -62,7 +70,7 @@
         i = 0
         j = 0
         while i < Self.N &+ 2 {
-            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+            encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -73,7 +81,7 @@
         while i < 4 {
             var k = 0
             while k < 256 {
-                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+                encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
 
                 s[i &* 0x100 &+ k] = dataL
                 s[i &* 0x100 &+ (k &+ 1)] = dataR
@@ -84,11 +92,12 @@
     }
 
     @usableFromInline
+    @_lifetime(&p, &s)
     static func expandState(
         password: [UInt8],
         salt: [UInt8],
-        p: inout [UInt32],
-        s: inout [UInt32]
+        p: inout MutableSpan<UInt32>,
+        s: inout MutableSpan<UInt32>
     ) {
         var j = 0
         var i = 0
@@ -105,7 +114,7 @@
         while i < Self.N &+ 2 {
             dataL ^= stream2word(data: salt, j: &j)
             dataR ^= stream2word(data: salt, j: &j)
-            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+            encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -118,7 +127,7 @@
             while k < 256 {
                 dataL ^= stream2word(data: salt, j: &j)
                 dataR ^= stream2word(data: salt, j: &j)
-                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
+                encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
 
                 s[i &* 0x100 &+ k] = dataL
                 s[i &* 0x100 &+ (k &+ 1)] = dataR
@@ -130,7 +139,7 @@
 
     @usableFromInline
     @inline(__always)
-    static func encipher(xl: inout UInt32, xr: inout UInt32, p: UnsafePointer<UInt32>, s: UnsafePointer<UInt32>) {
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: Span<UInt32>, s: Span<UInt32>) {
         var Xl = xl
         var Xr = xr
 
