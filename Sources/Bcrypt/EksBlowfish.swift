@@ -70,7 +70,7 @@
         i = 0
         j = 0
         while i < Self.N &+ 2 {
-            encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
+            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -81,7 +81,7 @@
         while i < 4 {
             var k = 0
             while k < 256 {
-                encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
+                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
                 s[i &* 0x100 &+ k] = dataL
                 s[i &* 0x100 &+ (k &+ 1)] = dataR
@@ -114,7 +114,7 @@
         while i < Self.N &+ 2 {
             dataL ^= stream2word(data: salt, j: &j)
             dataR ^= stream2word(data: salt, j: &j)
-            encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
+            encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
             p[i] = dataL
             p[i &+ 1] = dataR
@@ -127,7 +127,7 @@
             while k < 256 {
                 dataL ^= stream2word(data: salt, j: &j)
                 dataR ^= stream2word(data: salt, j: &j)
-                encipher(xl: &dataL, xr: &dataR, p: p.span, s: s.span)
+                encipher(xl: &dataL, xr: &dataR, p: p, s: s)
 
                 s[i &* 0x100 &+ k] = dataL
                 s[i &* 0x100 &+ (k &+ 1)] = dataR
@@ -139,32 +139,63 @@
 
     @usableFromInline
     @inline(__always)
-    static func encipher(xl: inout UInt32, xr: inout UInt32, p: Span<UInt32>, s: Span<UInt32>) {
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: borrowing MutableSpan<UInt32>, s: borrowing MutableSpan<UInt32>) {
         var Xl = xl
         var Xr = xr
 
-        Xl ^= p[0]
+        Xl ^= p[unchecked: 0]
 
         var i = 1
         while i <= 16 {
             // F(Xr)
-            let a1 = s[Int(truncatingIfNeeded: (Xl &>> 24) & 0xff)]
-            let b1 = s[0x100 &+ Int(truncatingIfNeeded: (Xl &>> 16) & 0xff)]
-            let c1 = s[0x200 &+ Int(truncatingIfNeeded: (Xl &>> 8) & 0xff)]
-            let d1 = s[0x300 &+ Int(truncatingIfNeeded: Xl & 0xff)]
-            Xr ^= ((a1 &+ b1) ^ c1 &+ d1) ^ p[i]
+            let a1 = s[unchecked: Int(truncatingIfNeeded: (Xl &>> 24) & 0xff)]
+            let b1 = s[unchecked: 0x100 &+ Int(truncatingIfNeeded: (Xl &>> 16) & 0xff)]
+            let c1 = s[unchecked: 0x200 &+ Int(truncatingIfNeeded: (Xl &>> 8) & 0xff)]
+            let d1 = s[unchecked: 0x300 &+ Int(truncatingIfNeeded: Xl & 0xff)]
+            Xr ^= ((a1 &+ b1) ^ c1 &+ d1) ^ p[unchecked: i]
 
             // F(Xl)
-            let a2 = s[Int(truncatingIfNeeded: (Xr &>> 24) & 0xff)]
-            let b2 = s[0x100 &+ Int(truncatingIfNeeded: (Xr &>> 16) & 0xff)]
-            let c2 = s[0x200 &+ Int(truncatingIfNeeded: (Xr &>> 8) & 0xff)]
-            let d2 = s[0x300 &+ Int(truncatingIfNeeded: Xr & 0xff)]
-            Xl ^= ((a2 &+ b2) ^ c2 &+ d2) ^ p[i &+ 1]
+            let a2 = s[unchecked: Int(truncatingIfNeeded: (Xr &>> 24) & 0xff)]
+            let b2 = s[unchecked: 0x100 &+ Int(truncatingIfNeeded: (Xr &>> 16) & 0xff)]
+            let c2 = s[unchecked: 0x200 &+ Int(truncatingIfNeeded: (Xr &>> 8) & 0xff)]
+            let d2 = s[unchecked: 0x300 &+ Int(truncatingIfNeeded: Xr & 0xff)]
+            Xl ^= ((a2 &+ b2) ^ c2 &+ d2) ^ p[unchecked: i &+ 1]
 
             i &+= 2
         }
 
-        xl = Xr ^ p[17]
+        xl = Xr ^ p[unchecked: 17]
+        xr = Xl
+    }
+    
+    @usableFromInline
+    @inline(__always)
+    static func encipher(xl: inout UInt32, xr: inout UInt32, p: Span<UInt32>, s: Span<UInt32>) {
+        var Xl = xl
+        var Xr = xr
+
+        Xl ^= p[unchecked: 0]
+
+        var i = 1
+        while i <= 16 {
+            // F(Xr)
+            let a1 = s[unchecked: Int(truncatingIfNeeded: (Xl &>> 24) & 0xff)]
+            let b1 = s[unchecked: 0x100 &+ Int(truncatingIfNeeded: (Xl &>> 16) & 0xff)]
+            let c1 = s[unchecked: 0x200 &+ Int(truncatingIfNeeded: (Xl &>> 8) & 0xff)]
+            let d1 = s[unchecked: 0x300 &+ Int(truncatingIfNeeded: Xl & 0xff)]
+            Xr ^= ((a1 &+ b1) ^ c1 &+ d1) ^ p[unchecked: i]
+
+            // F(Xl)
+            let a2 = s[unchecked: Int(truncatingIfNeeded: (Xr &>> 24) & 0xff)]
+            let b2 = s[unchecked: 0x100 &+ Int(truncatingIfNeeded: (Xr &>> 16) & 0xff)]
+            let c2 = s[unchecked: 0x200 &+ Int(truncatingIfNeeded: (Xr &>> 8) & 0xff)]
+            let d2 = s[unchecked: 0x300 &+ Int(truncatingIfNeeded: Xr & 0xff)]
+            Xl ^= ((a2 &+ b2) ^ c2 &+ d2) ^ p[unchecked: i &+ 1]
+
+            i &+= 2
+        }
+
+        xl = Xr ^ p[unchecked: 17]
         xr = Xl
     }
 }
