@@ -1,0 +1,83 @@
+name: benchmark
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.sha }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  RUN_LINK: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+  CHECK_NAME: "benchmark / benchmark-vs-thresholds"
+
+jobs:
+  benchmark-vs-thresholds:
+    # https://runs-on.com/features/custom-runners/
+    runs-on: ubuntu-latest
+    container: swift:noble
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -e -u -o pipefail {0}
+
+    steps:
+      # jemalloc is a dependency of the Benchmarking package
+      # actions/cache will detect zstd and will become much faster.
+      - name: Install jemalloc, zstd, curl and jq
+        run: |
+          apt update -q && apt install -yq libjemalloc-dev zstd curl jq
+
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Run benchmarks for PR
+        run: |
+          swift package -c release --disable-sandbox \
+            --package-path Benchmarks \
+            benchmark baseline update pull-request --no-progress --quiet
+
+      - name: Run benchmarks for main
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git stash
+          git checkout main
+          swift package -c release --disable-sandbox \
+            --package-path Benchmarks \
+            benchmark baseline update main --no-progress --quiet
+
+      - name: Compare benchmarks
+        id: comparison
+        run: |
+          echo '## Summary' >> $GITHUB_STEP_SUMMARY
+          echo $(date) >> $GITHUB_STEP_SUMMARY
+          echo "exitStatus=1" >> $GITHUB_ENV
+          swift package benchmark baseline check main pull_request --format markdown >> $GITHUB_STEP_SUMMARY
+          echo '---' >> $GITHUB_STEP_SUMMARY
+          swift package benchmark baseline compare main pull_request --no-progress --quiet --format markdown >> $GITHUB_STEP_SUMMARY
+          echo "exitStatus=0" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - if: ${{ env.exitStatus == '0' }}
+        name: Pull request comment text success
+        id: prtestsuccess
+        run: |
+          echo 'PRTEST<<EOF' >> $GITHUB_ENV
+          echo "[Pull request benchmark comparison [${{ matrix.os }}] with 'main' run at $(date -Iseconds)](https://github.com/ordo-one/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+      - if: ${{ env.exitStatus == '1' }}
+        name: Pull request comment text failure
+        id: prtestfailure
+        run: |
+          echo 'PRTEST<<EOF' >> $GITHUB_ENV
+          echo "[Pull request benchmark comparison [${{ matrix.os }}] with 'main' run at $(date -Iseconds)](https://github.com/ordo-one/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          echo "_Pull request had performance regressions_" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Exit with correct status
+        run: exit ${{ steps.comparison.outputs.exit-status }}
