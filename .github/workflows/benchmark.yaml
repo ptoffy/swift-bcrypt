@@ -17,16 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     container: swift:noble
 
-    defaults:
-      run:
-        shell: bash --noprofile --norc -e -u -o pipefail {0}
-
     steps:
       # jemalloc is a dependency of the Benchmarking package
       # actions/cache will detect zstd and will become much faster.
       - name: Install jemalloc, zstd, curl and jq
         run: |
           apt update -q && apt install -yq libjemalloc-dev zstd curl jq
+
+      - name: Install Node
+        run: |
+          apt-get update
+          apt-get install -y nodejs npm
 
       - name: Check out code
         uses: actions/checkout@v6
